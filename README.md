@@ -46,4 +46,4 @@ FastKAN can be after small modifications 2.57x smaller than efficient_kan and 2 
 
 FastKAN can be after small modifications 2.57x smaller than efficient_kan and 1.4 bigger from MLP in backward memory
 
-4. The most important think is to test if [pykan](https://github.com/KindXiaoming/pykan) has indeed the continious learning capabilities that it promises and if [fast-kan](https://github.com/ZiyaoLi/fast-kan) inherites this capabilities as well as the ability for pruning and symbolic regression.
+4. The most important thing is to test if [pykan](https://github.com/KindXiaoming/pykan) indeed has the continuous learning capabilities that it promises and if [fast-kan](https://github.com/ZiyaoLi/fast-kan) inherits these capabilities as well as the ability for pruning and symbolic regression.
