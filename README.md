@@ -29,7 +29,7 @@ $$b_{i}(u)=\frac{1}{exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)+1\right}$$
 FastKAN is 3.33x compared with efficient_kan in forward speed, based on @ZiyaoLi 
 
 The benchmarking I tested inspired from [KAN-benchmarking](https://github.com/Jerry-Master/KAN-benchmarking),
-indicate that it may be even Faster:
+indicate that it may be even Faster(executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H):
              |      forward  |     backward  |      forward  |     backward  |   num params  |  num trainable params
 ----------------------------------------------------------------------------------------------------------------------------------
 fastkan-gpu  |      2.37 ms  |      4.47 ms  |      0.14 GB  |      0.14 GB  |       300021  |                300005
