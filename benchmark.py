@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from fastkan import FastKAN  # Ensure the correct import path based on your project structure
 from efficient_kan import KAN
-
+from KALnet import KAL_Net
 
 def create_dataset(f, 
                    n_var = 10, 
@@ -254,6 +254,15 @@ def main():
         model.to('cuda')
         res['effkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['effkan-gpu']['params'], res['effkan-gpu']['train_params'] = count_params(model)
+    if args.method == 'kalnet' or args.method == 'all':
+        model = KAL_Net(layers_hidden=[args.inp_size, args.hid_size, 10], polynomial_order=3, base_activation=nn.SiLU)
+        if not args.just_cuda:
+            model.to('cpu')
+            res['kalnet-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
+            res['kalnet-cpu']['params'], res['kalnet-cpu']['train_params'] = count_params(model)
+        model.to('cuda')
+        res['kalnet-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
+        res['kalnet-gpu']['params'], res['kalnet-gpu']['train_params'] = count_params(model)
         
     save_results(res, args.output_path)
 

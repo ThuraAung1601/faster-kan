@@ -1,5 +1,6 @@
              |      forward  |     backward  |      forward  |     backward  |   num params  |  num trainable params
 ----------------------------------------------------------------------------------------------------------------------------------
-fastkan-gpu  |      0.83 ms  |      1.27 ms  |      0.02 GB  |      0.02 GB  |       255858  |                255850
-mlp-gpu      |      0.25 ms  |      0.62 ms  |      0.02 GB  |      0.02 GB  |       254410  |                254410
-effkan-gpu   |      2.39 ms  |      2.18 ms  |      0.03 GB  |      0.03 GB  |       508160  |                508160
+fastkan-gpu  |      0.81 ms  |      1.22 ms  |      0.02 GB  |      0.02 GB  |       255858  |                255850
+mlp-gpu      |      0.24 ms  |      0.61 ms  |      0.02 GB  |      0.02 GB  |       254410  |                254410
+effkan-gpu   |      2.41 ms  |      2.19 ms  |      0.03 GB  |      0.03 GB  |       508160  |                508160
+kalnet-gpu   |      1.56 ms  |      2.01 ms  |      0.08 GB  |      0.08 GB  |       254228  |                254228
