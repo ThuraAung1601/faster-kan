@@ -4,9 +4,11 @@ import time
 import numpy as np
 import torch
 from torch import nn
-from fastkan import FastKAN  # Ensure the correct import path based on your project structure
+from fastkan.fastkan import FastKAN  # Ensure the correct import path based on your project structure
 from efficient_kan import KAN
 from KALnet import KAL_Net
+from fastkan.fastkanorig import FastKAN as FastKANORG # Ensure the correct import path based on your project structure
+
 
 def create_dataset(f, 
                    n_var = 10, 
@@ -237,6 +239,15 @@ def main():
         model.to('cuda')
         res['fastkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['fastkan-gpu']['params'], res['fastkan-gpu']['train_params'] = count_params(model)
+    if args.method == 'fastkanorg' or args.method == 'all':
+        model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -3., grid_max = 3., num_grids = 4)
+        if not args.just_cuda:
+            model.to('cpu')
+            res['fastkanorg-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
+            res['fastkanorg-cpu']['params'], res['fastkanorg-cpu']['train_params'] = count_params(model)
+        model.to('cuda')
+        res['fastkanorg-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
+        res['fastkanorg-gpu']['params'], res['fastkanorg-gpu']['train_params'] = count_params(model)
     if args.method == 'mlp' or args.method == 'all':
         model = MLP(layers=[args.inp_size, 320 , 10], device='cpu')#int(np.rint(args.hid_size*7.5*10/10))
         if not args.just_cuda:
