@@ -20,9 +20,8 @@ The rationale of doing so is that these RBF functions well approximate the B-spl
 
 The idea is to experiment with other bases or exponent values. special.exp2 seems promising:
 
-$$
-b_{i}(u)=\frac{1}{\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)+1}
-$$
+$$b_{i}(u)=\frac{1}{\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)+1}$$
+
 2. Used LayerNorm to scale inputs to the range of spline grids, so there is no need to adjust the grids.
 
 3. From [fast-kan]:
