@@ -24,9 +24,9 @@ $$b_{i}(u)=\frac{1}{\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)+1}$$
 
 2. Used LayerNorm to scale inputs to the range of spline grids, so there is no need to adjust the grids.
 
-3. From [fast-kan]:
+3. From [fast-kan](https://github.com/ZiyaoLi/fast-kan):
 
-FastKAN is 3.33x compared with efficient_kan in forward speed, based on @ZiyaoLi(https://github.com/ZiyaoLi)
+FastKAN is 3.33x compared with efficient_kan in forward speed, based on [ZiyaoLi](https://github.com/ZiyaoLi)
 
 The benchmarking I tested inspired from [KAN-benchmarking](https://github.com/Jerry-Master/KAN-benchmarking),
 indicate that it may be even Faster(executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H):
