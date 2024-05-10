@@ -45,13 +45,14 @@ class FastKANLayer(nn.Module):
         grid_max: float = 2.,
         num_grids: int = 8,
         exponent: int = 2,
+        denominator: float = 0.33,
         use_base_update: bool = True,
         base_activation = F.silu,
         spline_weight_init_scale: float = 0.1,
     ) -> None:
         super().__init__()
         self.layernorm = nn.LayerNorm(input_dim)
-        self.rbf = RadialBasisFunction(grid_min, grid_max, num_grids, exponent)
+        self.rbf = RadialBasisFunction(grid_min, grid_max, num_grids, exponent, denominator)
         self.spline_linear = SplineLinear(input_dim * num_grids, output_dim, spline_weight_init_scale)
         self.use_base_update = use_base_update
         if use_base_update:
@@ -103,6 +104,7 @@ class FastKAN(nn.Module):
         grid_max: float = 2.,
         num_grids: int = 8,
         exponent: int = 2,
+        denominator: float = 0.33,
         use_base_update: bool = True,
         base_activation = F.silu,
         spline_weight_init_scale: float = 0.1,
@@ -115,6 +117,7 @@ class FastKAN(nn.Module):
                 grid_max=grid_max,
                 num_grids=num_grids,
                 exponent = exponent,
+                denominator = denominator,
                 use_base_update=use_base_update,
                 base_activation=base_activation,
                 spline_weight_init_scale=spline_weight_init_scale,

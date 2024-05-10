@@ -9,10 +9,10 @@ from efficient_kan import KAN
 
 
 def create_dataset(f, 
-                   n_var=2, 
-                   ranges = [-1,1],
-                   train_num=1000, 
-                   test_num=1000,
+                   n_var = 10, 
+                   ranges = [0,255],
+                   train_num=60000, 
+                   test_num=10000,
                    normalize_input=False,
                    normalize_label=False,
                    device='cpu',
@@ -201,10 +201,10 @@ def _create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output-path', default='times.txt', type=str)
     parser.add_argument('--method', choices=['fastkan', 'mlp', 'all'], type=str)
-    parser.add_argument('--batch-size', type=int, default=100)
-    parser.add_argument('--inp-size', type=int, default=2, help='The dimension of the input variables.')
-    parser.add_argument('--hid-size', type=int, default=10000, help='The dimension of the hidden layer.')
-    parser.add_argument('--reps', type=int, default=100, help='Number of times to repeat execution and average.')
+    parser.add_argument('--batch-size', type=int, default=64)
+    parser.add_argument('--inp-size', type=int, default=28*28, help='The dimension of the input variables.')
+    parser.add_argument('--hid-size', type=int, default=64, help='The dimension of the hidden layer.')
+    parser.add_argument('--reps', type=int, default=int(60000/64), help='Number of times to repeat execution and average.')
     parser.add_argument('--just-cuda', action='store_true', help='Whether to only execute the cuda version.')
     return parser
 
@@ -217,9 +217,9 @@ def main():
     dataset = create_dataset(
         f, 
         n_var=args.inp_size,
-        ranges = [-1,1],
-        train_num=1000, 
-        test_num=1000,
+        ranges = [0,255],
+        train_num=60000, 
+        test_num=10000,
         normalize_input=False,
         normalize_label=False,
         device='cpu',
@@ -229,7 +229,7 @@ def main():
     
     res = {}
     if args.method == 'fastkan' or args.method == 'all':
-        model = FastKAN(layers_hidden=[args.inp_size, args.hid_size, 1], grid_min = -1.4, grid_max = 1.4, num_grids = 8, exponent = 0.33)
+        model = FastKAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -3., grid_max = 3., num_grids = 4, exponent = 2, denominator = 1.7)
         if not args.just_cuda:
             model.to('cpu')
             res['fastkan-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
@@ -238,7 +238,7 @@ def main():
         res['fastkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['fastkan-gpu']['params'], res['fastkan-gpu']['train_params'] = count_params(model)
     if args.method == 'mlp' or args.method == 'all':
-        model = MLP(layers=[args.inp_size, int(np.rint(args.hid_size*7.5*10/10)) , 1], device='cpu')
+        model = MLP(layers=[args.inp_size, 320 , 10], device='cpu')#int(np.rint(args.hid_size*7.5*10/10))
         if not args.just_cuda:
             res['mlp-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
             res['mlp-cpu']['params'], res['mlp-cpu']['train_params'] = count_params(model)
@@ -246,7 +246,7 @@ def main():
         res['mlp-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['mlp-gpu']['params'], res['mlp-gpu']['train_params'] = count_params(model)
     if args.method == 'efficientkan' or args.method == 'all':
-        model = KAN(layers_hidden=[args.inp_size, args.hid_size, 1], grid_size=5, spline_order=3)
+        model = KAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_size=5, spline_order=3)
         if not args.just_cuda:
             model.to('cpu')
             res['effkan-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)

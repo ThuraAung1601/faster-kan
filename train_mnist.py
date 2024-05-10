@@ -49,9 +49,9 @@ def count_parameters(model):
     return total_params, trainable_params
 
 # Define model
-model = FastKAN([28 * 28, 64,  10], grid_min = -1.4, grid_max = 1.4, num_grids = 8, exponent = 2)
+model = FastKAN([28 * 28, 64,  10], grid_min = -3., grid_max = 3., num_grids = 4, exponent = 2, denominator = 1.7)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_1 = MLP(layers=[28 * 28, 576, 10], device=device)
+model_1 = MLP(layers=[28 * 28, 320, 10], device=device)
 # Calculate total and trainable parameters
 total_params, trainable_params = count_parameters(model)
 print(f"Total parameters: {total_params}")
@@ -60,21 +60,21 @@ total_params, trainable_params = count_parameters(model_1)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
 model_2 = KAN([28 * 28, 64, 10], grid_size=5, spline_order=3)
-total_params, trainable_params = count_parameters(model)
+total_params, trainable_params = count_parameters(model_2)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
-model=model_2
+model=model
 model.to(device)
 
 # Define optimizer
-optimizer = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-5)
+optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
 # Define learning rate scheduler
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.85)
 
 # Define loss
 criterion = nn.CrossEntropyLoss()
 
-for epoch in range(10):
+for epoch in range(15):
     # Train
     model.train()
     with tqdm(trainloader) as pbar:
@@ -88,8 +88,8 @@ for epoch in range(10):
             optimizer.zero_grad()
 
             # Record forward pass
-            with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True) as prof:
-                output = model(images)
+            #with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True) as prof:
+            output = model(images)
             #output = model(images)
                    
             loss = criterion(output, labels)
@@ -103,8 +103,8 @@ for epoch in range(10):
             pbar.set_postfix(loss=loss.item(), accuracy=accuracy.item(), lr=optimizer.param_groups[0]['lr'])
 
             # Print profiler results every 10 batches
-            if i % 50 == 0:
-                print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+            #if i % 50 == 0:
+            #    print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
 
     # Validation
     model.eval()
