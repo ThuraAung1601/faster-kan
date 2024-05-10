@@ -31,11 +31,14 @@ FastKAN is 3.33x compared with efficient_kan in forward speed, based on @ZiyaoLi
 The benchmarking I tested inspired from [KAN-benchmarking](https://github.com/Jerry-Master/KAN-benchmarking),
 indicate that it may be even Faster(executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H):
 
-|             |      forward  |     backward  |      forward  |     backward  |   num params  |  num trainable params			   |
-|----------------------------------------------------------------------------------------------------------------------------------|
-|fastkan-gpu  |      2.37 ms  |      4.47 ms  |      0.14 GB  |      0.14 GB  |       300021  |                300005			   |
-|mlp-gpu      |      1.06 ms  |      1.48 ms  |      0.07 GB  |      0.10 GB  |       300001  |                300001			   |
-|effkan-gpu   |     11.83 ms  |     22.05 ms  |      0.36 GB  |      0.36 GB  |       300000  |                300000			   |
+|                 | forward	 | backward	 | forward	 | backward	 | num params	 | num trainable params	 |
+|-----------------|----------|-----------|-----------|-----------|-----------|-----------|
+| fastkan-gpu     | 2.37 ms	 | 4.47 ms	 | 0.14 GB	 | 0.14 GB	 | 300021	 | 300005	 |
+| mlp-gpu     | 1.06 ms	 | 1.48 ms	 | 0.07 GB	 | 0.10 GB	 | 300001	 | 300001	 |
+| effkan-gpu     | 11.83 ms	 | 22.05 ms	 | 0.36 GB	 | 0.36 GB	 | 300000	 | 300000	 |
+
+|                                    | Realme GT                 |   iPhone 11 Pro   |
+
 
 FastKAN can be after small modifications 4.99x faster than efficient_kan and 2.23 slower from MLP in forward speed
 
