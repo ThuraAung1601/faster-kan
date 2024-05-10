@@ -20,8 +20,9 @@ The rationale of doing so is that these RBF functions well approximate the B-spl
 
 The idea is to experiment with other bases or exponent values. special.exp2 seems promising:
 
-$$b_{i}(u)=\frac{1}{exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)+1\right}$$
-
+$$
+b_{i}(u)=\frac{1}{\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)+1}
+$$
 2. Used LayerNorm to scale inputs to the range of spline grids, so there is no need to adjust the grids.
 
 3. From [fast-kan]:
@@ -37,6 +38,9 @@ mlp-gpu      |      1.06 ms  |      1.48 ms  |      0.07 GB  |      0.10 GB  |  
 effkan-gpu   |     11.83 ms  |     22.05 ms  |      0.36 GB  |      0.36 GB  |       300000  |                300000
 
 FastKAN can be after small modifications 4.99x faster than efficient_kan and 2.23 slower from MLP in forward speed
+
 FastKAN can be after small modifications 4.93x faster than efficient_kan and 3.02 slower from MLP in backward speed
+
 FastKAN can be after small modifications 2.57x smaller than efficient_kan and 2 bigger from MLP in forbward memory
+
 FastKAN can be after small modifications 2.57x smaller than efficient_kan and 1.4 bigger from MLP in backward memory
