@@ -10,7 +10,7 @@ class SplineLinear(nn.Linear):
         super().__init__(in_features, out_features, bias=False, **kw)
 
     def reset_parameters(self) -> None:
-        nn.init.trunc_normal_(self.weight, mean=0, std=self.init_scale)
+        nn.init.xavier_uniform_(self.weight)  # Using Xavier Uniform initialization
 
 class RadialBasisFunction(nn.Module):
     def __init__(
@@ -18,15 +18,23 @@ class RadialBasisFunction(nn.Module):
         grid_min: float = -2.,
         grid_max: float = 2.,
         num_grids: int = 8,
-        denominator: float = None,  # larger denominators lead to smoother basis
+        exponent: int = 2,
+        denominator: float = 0.33,  # larger denominators lead to smoother basis
     ):
         super().__init__()
         grid = torch.linspace(grid_min, grid_max, num_grids)
         self.grid = torch.nn.Parameter(grid, requires_grad=False)
         self.denominator = denominator or (grid_max - grid_min) / (num_grids - 1)
+        self.exponent = exponent
+        self.inv_denominator = 1. / self.denominator  # Cache the inverse of the denominator
 
     def forward(self, x):
-        return torch.exp(-((x[..., None] - self.grid) / self.denominator) ** 2)
+        diff = (x[..., None] - self.grid)
+        diff = diff.mul(self.inv_denominator)  # Efficient scalar multiplication
+        diff = diff.mul(diff)  # Efficient squaring
+
+        return torch.exp(-diff)  # Replace pow with multiplication for squaring
+
 
 class FastKANLayer(nn.Module):
     def __init__(
@@ -36,13 +44,14 @@ class FastKANLayer(nn.Module):
         grid_min: float = -2.,
         grid_max: float = 2.,
         num_grids: int = 8,
+        exponent: int = 2,
         use_base_update: bool = True,
         base_activation = F.silu,
         spline_weight_init_scale: float = 0.1,
     ) -> None:
         super().__init__()
         self.layernorm = nn.LayerNorm(input_dim)
-        self.rbf = RadialBasisFunction(grid_min, grid_max, num_grids)
+        self.rbf = RadialBasisFunction(grid_min, grid_max, num_grids, exponent)
         self.spline_linear = SplineLinear(input_dim * num_grids, output_dim, spline_weight_init_scale)
         self.use_base_update = use_base_update
         if use_base_update:
@@ -51,15 +60,40 @@ class FastKANLayer(nn.Module):
 
     def forward(self, x, time_benchmark=False):
         if not time_benchmark:
-            spline_basis = self.rbf(self.layernorm(x))
+            spline_basis = self.rbf(self.layernorm(x)).view(x.shape[0], -1)
+            #print("spline_basis:", spline_basis.shape)
         else:
-            spline_basis = self.rbf(x)
-        ret = self.spline_linear(spline_basis.view(*spline_basis.shape[:-2], -1))
+            spline_basis = self.rbf(x).view(x.shape[0], -1)
+            #print("spline_basis:", spline_basis.shape)
+        #print("-------------------------")
+        ret = self.spline_linear(spline_basis)
+        #print("spline_basis.shape[:-2]:", spline_basis.shape[:-2])
+        #print("*spline_basis.shape[:-2]:", *spline_basis.shape[:-2])
+        #print("spline_basis.view(*spline_basis.shape[:-2], -1):", spline_basis.view(*spline_basis.shape[:-2], -1).shape)
+        #print("ret:", ret.shape)
+        #print("-------------------------")
         if self.use_base_update:
             base = self.base_linear(self.base_activation(x))
-            ret = ret + base
+            #print("self.base_activation(x):", self.base_activation(x).shape)
+            #print("base:", base.shape)
+            #print("@@@@@@@@@")
+            ret += base
         return ret
 
+                
+        #spline_basis = spline_basis.reshape(x.shape[0], -1)  # Reshape to [batch_size, input_dim * num_grids]
+        #print("spline_basis:", spline_basis.shape)
+        
+        #spline_weight = self.spline_weight.view(-1, self.spline_weight.shape[0])  # Reshape to [input_dim * num_grids, output_dim]
+        #print("spline_weight:", spline_weight.shape)
+        
+        #spline = torch.matmul(spline_basis, spline_weight)  # Resulting shape: [batch_size, output_dim]
+    
+        #print("-------------------------")
+        #print("Base shape:", base.shape)
+        #print("Spline shape:", spline.shape)
+        #print("@@@@@@@@@")
+        
 
 class FastKAN(nn.Module):
     def __init__(
@@ -68,6 +102,7 @@ class FastKAN(nn.Module):
         grid_min: float = -2.,
         grid_max: float = 2.,
         num_grids: int = 8,
+        exponent: int = 2,
         use_base_update: bool = True,
         base_activation = F.silu,
         spline_weight_init_scale: float = 0.1,
@@ -79,6 +114,7 @@ class FastKAN(nn.Module):
                 grid_min=grid_min,
                 grid_max=grid_max,
                 num_grids=num_grids,
+                exponent = exponent,
                 use_base_update=use_base_update,
                 base_activation=base_activation,
                 spline_weight_init_scale=spline_weight_init_scale,
