@@ -49,13 +49,13 @@ except from the MLP that has a hidden layer 256*5 to match the num params of Fas
 
 It seems that the various KAN implementations yield different num params for the same hidden layer and B-spline order (or its equivilent approximation parameters in other implementions) :
 
-|                 |      forward  |     backward  |      forward  |     backward  |   num params  |  num trainable params |
+|                 | forward  | backward  | forward  | backward  | num params  | num trainable params |
 |-------------------------------------------------------------------------------------------------------------------------|
-| fasterkan-gpu   |      0.63 ms  |      1.44 ms  |      0.06 GB  |      0.06 GB  |      3254336  |               3254304 |
-| fastkanorg-gpu  |      0.86 ms  |      1.76 ms  |      0.05 GB  |      0.06 GB  |      3457866  |               3457834 |
-| mlp-gpu         |      0.30 ms  |      0.82 ms  |      0.04 GB  |      0.05 GB  |      3256330  |               3256330 |
-| effkan-gpu      |      2.39 ms  |      2.52 ms  |      0.04 GB  |      0.05 GB  |      2032640  |               2032640 |
-| kalnet-gpu      |      1.57 ms  |      2.19 ms  |      0.10 GB  |      0.10 GB  |      1016852  |               1016852 |
+| fasterkan-gpu   | 0.61 ms  | 1.41 ms  | 0.06 GB  | 0.06 GB  | 3254336  | 3254304 |
+| fastkanorg-gpu  | 0.84 ms  | 1.73 ms  | 0.05 GB  | 0.06 GB  | 3457866  | 3457834 |
+| mlp-gpu         | 0.29 ms  | 0.79 ms  | 0.04 GB  | 0.05 GB  | 3256330  | 3256330 |
+| effkan-gpu      | 2.80 ms  | 2.74 ms  | 0.04 GB  | 0.05 GB  | 2032640  | 2032640 |
+| kalnet-gpu      | 1.57 ms  | 2.13 ms  | 0.10 GB  | 0.10 GB  | 1016852  | 1016852 |
 
 
 FasterKAN is ~1.5 faster than FastKAN and ~2 slower from MLP in forward speed

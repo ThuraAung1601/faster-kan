@@ -184,13 +184,13 @@ def benchmark(
 def save_results(t: Dict[str, Dict[str, float]], out_path: str):
     maxlen = np.max([len(k) for k in t.keys()])
     with open(out_path, 'w') as f:
-        print(f"| {' '*maxlen}  |  {'forward':>11}  |  {'backward':>11}  |  {'forward':>11}  |  {'backward':>11}  |  {'num params':>11}  |  {'num trainable params':>20} |", file=f)
-        print(f"| {' '*maxlen}  |  {'forward':>11}  |  {'backward':>11}  |  {'forward':>11}  |  {'backward':>11}  |  {'num params':>11}  |  {'num trainable params':>20} |")
+        print(f"| {' '*maxlen}  | {'forward':>11}  | {'backward':>11}  | {'forward':>11}  | {'backward':>11}  | {'num params':>11}  | {'num trainable params':>20} |", file=f)
+        print(f"| {' '*maxlen}  | {'forward':>11}  | {'backward':>11}  | {'forward':>11}  | {'backward':>11}  | {'num params':>11}  | {'num trainable params':>20} |")
         print(f"|{'-'*121}|", file=f)
         print(f"|{'-'*121}|")
         for key in t.keys():
-            print(f"| {key:<{maxlen}}  |  {t[key]['forward']:8.2f} ms  |  {t[key]['backward']:8.2f} ms  |  {t[key]['forward-memory']:8.2f} GB  |  {t[key]['backward-memory']:8.2f} GB  |  {t[key]['params']:>11}  |  {t[key]['train_params']:>20} |", file=f)
-            print(f"| {key:<{maxlen}}  |  {t[key]['forward']:8.2f} ms  |  {t[key]['backward']:8.2f} ms  |  {t[key]['forward-memory']:8.2f} GB  |  {t[key]['backward-memory']:8.2f} GB  |  {t[key]['params']:>11}  |  {t[key]['train_params']:>20} |")
+            print(f"| {key:<{maxlen}}  | {t[key]['forward']:8.2f} ms  | {t[key]['backward']:8.2f} ms  | {t[key]['forward-memory']:8.2f} GB  | {t[key]['backward-memory']:8.2f} GB  | {t[key]['params']:>11}  | {t[key]['train_params']:>20} |", file=f)
+            print(f"| {key:<{maxlen}}  | {t[key]['forward']:8.2f} ms  | {t[key]['backward']:8.2f} ms  | {t[key]['forward-memory']:8.2f} GB  | {t[key]['backward-memory']:8.2f} GB  | {t[key]['params']:>11}  | {t[key]['train_params']:>20} |")
         #print(f"FasterKAN can be after small modifications 4.99x faster than FastKAN and {} slower from MLP in forward speed")
         #print(f"FastKAN can be after small modifications 4.93x faster than efficient_kan and 3.02 slower from MLP in backward speed")
         #print(f"FastKAN can be after small modifications 2.57x smaller than efficient_kan and 2 bigger from MLP in forbward memory")
