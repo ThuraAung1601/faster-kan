@@ -16,7 +16,7 @@ The forward time of FaskerKAN is 1.5x faster than [fast-kan](https://github.com/
 
 
 
-[fast-kan] used Gaussian Radial Basis Functions to approximate the B-spline basis, which is the bottleneck of KAN and efficient KAN:
+[fast-kan](https://github.com/ZiyaoLi/fast-kan) used Gaussian Radial Basis Functions to approximate the B-spline basis, which is the bottleneck of KAN and efficient KAN:
 
 $$b_{i}(u)=\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)$$
 
@@ -25,7 +25,7 @@ FasterKAN:
 
 For the momement Reflectional SWitch Activation Function (RSWAF) functions seem the most promising to use:
 
-$$b_{i}(u)=\1-\left(\tanh\left(-\left(\frac{u-u_i}{h}\right)))^2$$
+$$b_i(u) = 1 - \left(\tanh\left(\frac{u - u_i}{h}\right)\right)^2$$
 
 
 The rationale of doing so is that these RSWAF functions can approximate the B-spline basis (up to a linear transformation), they are easy to calculate while having uniform grids.
@@ -49,14 +49,13 @@ except from the MLP that has a hidden layer 256*5 to match the num params of Fas
 
 It seems that the various KAN implementations yield different num params for the same hidden layer and B-spline order (or its equivilent approximation parameters in other implementions) :
 
-|                 | forward  | backward  | forward  | backward  | num params  | num trainable params |
-|-------------------------------------------------------------------------------------------------------------------------|
-| fasterkan-gpu   | 0.61 ms  | 1.41 ms  | 0.06 GB  | 0.06 GB  | 3254336  | 3254304 |
-| fastkanorg-gpu  | 0.84 ms  | 1.73 ms  | 0.05 GB  | 0.06 GB  | 3457866  | 3457834 |
-| mlp-gpu         | 0.29 ms  | 0.79 ms  | 0.04 GB  | 0.05 GB  | 3256330  | 3256330 |
-| effkan-gpu      | 2.80 ms  | 2.74 ms  | 0.04 GB  | 0.05 GB  | 2032640  | 2032640 |
-| kalnet-gpu      | 1.57 ms  | 2.13 ms  | 0.10 GB  | 0.10 GB  | 1016852  | 1016852 |
-
+|                 | forward	 | backward	 | forward	 | backward	 | num params	 | num trainable params	 |
+|-----------------|----------|-----------|-----------|-----------|-----------|-----------|
+| fasterkan-gpu     | 0.61 ms	 | 1.41 ms	 | 0.06 GB	 | 0.06 GB	 | 3254336	 | 3254304	 |
+| fastkanorg-gpu     | 0.84 ms	 | 1.73 ms	 | 0.05 GB	 | 0.06 GB	 | 3457866	 | 3457834	 |
+| mlp-gpu     | 0.29 ms	 | 0.79 ms	 | 0.04 GB	 | 0.05 GB	 | 3256330	 | 3256330	 |
+| effkan-gpu     | 2.80 ms	 | 2.74 ms	 | 0.04 GB	 | 0.05 GB	 | 2032640	 | 2032640	 |
+| kalnet-gpu     | 1.57 ms	 | 2.13 ms	 | 0.10 GB	 | 0.10 GB	 | 1016852	 | 1016852	 |
 
 FasterKAN is ~1.5 faster than FastKAN and ~2 slower from MLP in forward speed
 
