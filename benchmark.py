@@ -4,7 +4,7 @@ import time
 import numpy as np
 import torch
 from torch import nn
-from fastkan.fastkan import FastKAN  # Ensure the correct import path based on your project structure
+from fastkan.fasterkan import FasterKAN  # Ensure the correct import path based on your project structure
 from efficient_kan import KAN
 from KALnet import KAL_Net
 from fastkan.fastkanorig import FastKAN as FastKANORG # Ensure the correct import path based on your project structure
@@ -184,14 +184,17 @@ def benchmark(
 def save_results(t: Dict[str, Dict[str, float]], out_path: str):
     maxlen = np.max([len(k) for k in t.keys()])
     with open(out_path, 'w') as f:
-        print(f"{' '*maxlen}  |  {'forward':>11}  |  {'backward':>11}  |  {'forward':>11}  |  {'backward':>11}  |  {'num params':>11}  |  {'num trainable params':>20}", file=f)
-        print(f"{' '*maxlen}  |  {'forward':>11}  |  {'backward':>11}  |  {'forward':>11}  |  {'backward':>11}  |  {'num params':>11}  |  {'num trainable params':>20}")
-        print('-'*130, file=f)
-        print('-'*130)
+        print(f"| {' '*maxlen}  |  {'forward':>11}  |  {'backward':>11}  |  {'forward':>11}  |  {'backward':>11}  |  {'num params':>11}  |  {'num trainable params':>20} |", file=f)
+        print(f"| {' '*maxlen}  |  {'forward':>11}  |  {'backward':>11}  |  {'forward':>11}  |  {'backward':>11}  |  {'num params':>11}  |  {'num trainable params':>20} |")
+        print(f"|{'-'*121}|", file=f)
+        print(f"|{'-'*121}|")
         for key in t.keys():
-            print(f"{key:<{maxlen}}  |  {t[key]['forward']:8.2f} ms  |  {t[key]['backward']:8.2f} ms  |  {t[key]['forward-memory']:8.2f} GB  |  {t[key]['backward-memory']:8.2f} GB  |  {t[key]['params']:>11}  |  {t[key]['train_params']:>20}", file=f)
-            print(f"{key:<{maxlen}}  |  {t[key]['forward']:8.2f} ms  |  {t[key]['backward']:8.2f} ms  |  {t[key]['forward-memory']:8.2f} GB  |  {t[key]['backward-memory']:8.2f} GB  |  {t[key]['params']:>11}  |  {t[key]['train_params']:>20}")
-
+            print(f"| {key:<{maxlen}}  |  {t[key]['forward']:8.2f} ms  |  {t[key]['backward']:8.2f} ms  |  {t[key]['forward-memory']:8.2f} GB  |  {t[key]['backward-memory']:8.2f} GB  |  {t[key]['params']:>11}  |  {t[key]['train_params']:>20} |", file=f)
+            print(f"| {key:<{maxlen}}  |  {t[key]['forward']:8.2f} ms  |  {t[key]['backward']:8.2f} ms  |  {t[key]['forward-memory']:8.2f} GB  |  {t[key]['backward-memory']:8.2f} GB  |  {t[key]['params']:>11}  |  {t[key]['train_params']:>20} |")
+        #print(f"FasterKAN can be after small modifications 4.99x faster than FastKAN and {} slower from MLP in forward speed")
+        #print(f"FastKAN can be after small modifications 4.93x faster than efficient_kan and 3.02 slower from MLP in backward speed")
+        #print(f"FastKAN can be after small modifications 2.57x smaller than efficient_kan and 2 bigger from MLP in forbward memory")
+        #print(f"FastKAN can be after small modifications 2.57x smaller than efficient_kan and 1.4 bigger from MLP in backward memory")
 
 def count_params(model: nn.Module) -> Tuple[int, int]:
     pytorch_total_params = sum(p.numel() for p in model.parameters())
@@ -205,7 +208,7 @@ def _create_parser():
     parser.add_argument('--method', choices=['fastkan', 'mlp', 'all'], type=str)
     parser.add_argument('--batch-size', type=int, default=64)
     parser.add_argument('--inp-size', type=int, default=28*28, help='The dimension of the input variables.')
-    parser.add_argument('--hid-size', type=int, default=64, help='The dimension of the hidden layer.')
+    parser.add_argument('--hid-size', type=int, default=256, help='The dimension of the hidden layer.')
     parser.add_argument('--reps', type=int, default=int(60000/64), help='Number of times to repeat execution and average.')
     parser.add_argument('--just-cuda', action='store_true', help='Whether to only execute the cuda version.')
     return parser
@@ -230,17 +233,17 @@ def main():
     loss_fn = lambda x, y: torch.mean((x - y) ** 2)
     
     res = {}
-    if args.method == 'fastkan' or args.method == 'all':
-        model = FastKAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -3., grid_max = 3., num_grids = 4, exponent = 2, denominator = 1.7)
+    if args.method == 'fasterkan' or args.method == 'all':
+        model = FasterKAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 1.8, num_grids = 16, exponent = 2, denominator = 0.15)
         if not args.just_cuda:
             model.to('cpu')
-            res['fastkan-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
-            res['fastkan-cpu']['params'], res['fastkan-cpu']['train_params'] = count_params(model)
+            res['fasterkan-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
+            res['fasterkan-cpu']['params'], res['fasterkan-cpu']['train_params'] = count_params(model)
         model.to('cuda')
-        res['fastkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
-        res['fastkan-gpu']['params'], res['fastkan-gpu']['train_params'] = count_params(model)
+        res['fasterkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
+        res['fasterkan-gpu']['params'], res['fasterkan-gpu']['train_params'] = count_params(model)
     if args.method == 'fastkanorg' or args.method == 'all':
-        model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -3., grid_max = 3., num_grids = 4)
+        model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 1.8, num_grids = 16)
         if not args.just_cuda:
             model.to('cpu')
             res['fastkanorg-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
@@ -249,7 +252,7 @@ def main():
         res['fastkanorg-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['fastkanorg-gpu']['params'], res['fastkanorg-gpu']['train_params'] = count_params(model)
     if args.method == 'mlp' or args.method == 'all':
-        model = MLP(layers=[args.inp_size, 320 , 10], device='cpu')#int(np.rint(args.hid_size*7.5*10/10))
+        model = MLP(layers=[args.inp_size, args.hid_size*16 , 10], device='cpu')#int(np.rint(args.hid_size*7.5*10/10))
         if not args.just_cuda:
             res['mlp-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
             res['mlp-cpu']['params'], res['mlp-cpu']['train_params'] = count_params(model)

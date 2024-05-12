@@ -1,5 +1,5 @@
 # from efficient_kan import KAN
-from fastkan import FastKAN
+from fastkan.fasterkan import FasterKAN
 
 # Train on MNIST
 import torch
@@ -49,9 +49,9 @@ def count_parameters(model):
     return total_params, trainable_params
 
 # Define model
-model = FastKAN([28 * 28, 64,  10], grid_min = -3., grid_max = 3., num_grids = 4, exponent = 2, denominator = 1.7)
+model = fasterKAN([28 * 28, 256,  10], grid_min = -1.2, grid_max = 1.8, num_grids = 16, exponent = 2, denominator = 0.15)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_1 = MLP(layers=[28 * 28, 320, 10], device=device)
+model_1 = MLP(layers=[28 * 28, 256*5, 10], device=device)
 # Calculate total and trainable parameters
 total_params, trainable_params = count_parameters(model)
 print(f"Total parameters: {total_params}")
@@ -59,7 +59,7 @@ print(f"Trainable parameters: {trainable_params}")
 total_params, trainable_params = count_parameters(model_1)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
-model_2 = KAN([28 * 28, 64, 10], grid_size=5, spline_order=3)
+model_2 = KAN([28 * 28, 256, 10], grid_size=5, spline_order=3)
 total_params, trainable_params = count_parameters(model_2)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
