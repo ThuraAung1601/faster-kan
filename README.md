@@ -44,7 +44,7 @@ FastKAN is 3.33x compared with efficient_kan in forward speed, based on [ZiyaoLi
 The benchmarking I tested inspired from [KAN-benchmarking](https://github.com/Jerry-Master/KAN-benchmarking),
 indicates that FastKAN may be even faster than originally though and FasterKAN is the fastest of all for the time being.
 
-Experiments were executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H, and the network has dimensions [28*28,265,10],
+Experiments were executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H, and the network has dimensions [28*28,256,10],
 except from the MLP that has a hidden layer 256*5 to match the num params of FasterKAN.
 
 It seems that the various KAN implementations yield different num params for the same hidden layer and B-spline order (or its equivilent approximation parameters in other implementions) :
@@ -66,7 +66,9 @@ FasterKAN is 0.83 smaller than FastKAN and 1.5 bigger from MLP in forbward memor
 FasterKAN is equal with FastKAN and 1.2 bigger from MLP in backward memory
 
 4. Train on mnist with a FasterKAN[28*28,256,10] with 815144 num trainable params for 15 epochs, 97% accuracy is achieved:
+
 100%|█| 938/938 [00:13<00:00, 67.87it/s, accuracy=1, loss=0.013, lr=0.00010
+
 Epoch 15, Val Loss: 0.07934391943353768, Val Accuracy: 0.9772093949044586
 
 5. The most important thing is to test if [pykan](https://github.com/KindXiaoming/pykan) indeed has the continuous learning capabilities that it promises and if [fast-kan](https://github.com/ZiyaoLi/fast-kan) and [faster-kan](https://github.com/AthanasiosDelis/faster-kan) inherit these capabilities as well as the ability for pruning and symbolic regression.
