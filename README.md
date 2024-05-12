@@ -1,15 +1,17 @@
-# FaskKAN implementation with RSWAF bases functions and benchmarking with other KANs
-
+# FasterKAN = FastKAN + RSWAF bases functions and benchmarking with other KANs
 
 This repository contains a very fast implementation of Kolmogorov-Arnold Network (KAN). 
+
 It uses approximations of the B-spline using the Switch Activation Function, inspired from the work of [Bo Deng](https://digitalcommons.unl.edu/mathfacpub/68/),
 modified for having Reflectional symmetry. This kind of Activation Function can approximate 3rd order B-Splines used in the original [pykan](https://github.com/KindXiaoming/pykan).
 
 
 The original implementation of KAN is [pykan](https://github.com/KindXiaoming/pykan).
+
 The original implementation of Fast-KAN is [fast-kan](https://github.com/ZiyaoLi/fast-kan). FasterKAN uses as its bases the code from Fast-KAN.
 
 The forward time of FaskKAN is 3.33x faster than [efficient KAN](https://github.com/Blealtan/efficient-kan), and the implementation is a LOT easier for FaskKAN vs efficient KAN.
+
 The forward time of FaskerKAN is 1.5x faster than [fast-kan](https://github.com/ZiyaoLi/fast-kan).
 
 
@@ -20,12 +22,14 @@ $$b_{i}(u)=\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)$$
 
 FasterKAN:
 1. Here in [faster-kan](https://github.com/AthanasiosDelis/faster-kan), the idea is to experiment with other bases, exponent values, h values and the exclusion of the bases SiLU Funciton.
+
 For the momement Reflectional SWitch Activation Function (RSWAF) functions seem the most promising to use:
 
-$$b_{i}(u)=\1-\left(\tanh\left(-\left(\frac{u-u_i}{h}\right)))^2\right$$
+$$b_{i}(u)=\1-\left(\tanh\left(-\left(\frac{u-u_i}{h}\right)))^2$$
 
 
 The rationale of doing so is that these RSWAF functions can approximate the B-spline basis (up to a linear transformation), they are easy to calculate while having uniform grids.
+
 Results of approximation of a 3-rd order spline for a [28*28,256,10] efficient-KAN are shown in the figure below (code in [notebook](draw_spline_basis.ipynb)). 
 
 ![RSWAF well approximates 3-order B-spline basis.](img/compare_basis.png)
@@ -39,8 +43,10 @@ FastKAN is 3.33x compared with efficient_kan in forward speed, based on [ZiyaoLi
 
 The benchmarking I tested inspired from [KAN-benchmarking](https://github.com/Jerry-Master/KAN-benchmarking),
 indicates that FastKAN may be even faster than originally though and FasterKAN is the fastest of all for the time being.
+
 Experiments were executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H, and the network has dimensions [28*28,265,10],
 except from the MLP that has a hidden layer 256*5 to match the num params of FasterKAN.
+
 It seems that the various KAN implementations yield different num params for the same hidden layer and B-spline order (or its equivilent approximation parameters in other implementions) :
 
 |                 |      forward  |     backward  |      forward  |     backward  |   num params  |  num trainable params |
