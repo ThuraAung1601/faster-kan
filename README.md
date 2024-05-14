@@ -20,7 +20,7 @@ The forward time of FaskerKAN is 1.5x faster than [fast-kan](https://github.com/
 
 $$b_{i}(u)=\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)$$
 
-FasterKAN:
+## FasterKAN:
 1. Here in [faster-kan](https://github.com/AthanasiosDelis/faster-kan), the idea is to experiment with other bases, exponent values, h values and the exclusion of the bases SiLU Funciton.
 
 For the momement Reflectional SWitch Activation Function (RSWAF) functions seem the most promising to use:
@@ -72,3 +72,24 @@ FasterKAN is equal with FastKAN and 1.2 bigger from MLP in backward memory
 Epoch 15, Val Loss: 0.07934391943353768, Val Accuracy: 0.9772093949044586
 
 5. The most important thing is to test if [pykan](https://github.com/KindXiaoming/pykan) indeed has the continuous learning capabilities that it promises and if [fast-kan](https://github.com/ZiyaoLi/fast-kan) and [faster-kan](https://github.com/AthanasiosDelis/faster-kan) inherit these capabilities as well as the ability for pruning and symbolic regression.
+
+## Contact
+
+For any inquiries or support, contact: athanasiosdelis@mail.ntua.gr or adelis2@jhu.edu
+
+## Citation
+
+```bibtex
+@misc{torchkan,
+  author = {Athanasios Delis},
+  title = {FasterKAN},
+  year = {2024},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/AthanasiosDelis/faster-kan/}}
+}
+```
+
+## Contributions
+
+Contributions are welcome. Please raise issues as necessary. All issues, as they come up, will be definitely solved to the best of my abilities, after commit "Fin.", scheduled end-June, 2024. Till then if you send a merge request, describe the problem, the fix and why it works.
