@@ -20,7 +20,7 @@ The forward time of FaskerKAN is 1.5x faster than [fast-kan](https://github.com/
 
 $$b_{i}(u)=\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)$$
 
-## FasterKAN:
+## FasterKAN
 1. Here in [faster-kan](https://github.com/AthanasiosDelis/faster-kan), the idea is to experiment with other bases, exponent values, h values and the exclusion of the bases SiLU Funciton.
 
 For the momement Reflectional SWitch Activation Function (RSWAF) functions seem the most promising to use:
@@ -71,13 +71,31 @@ FasterKAN is equal with FastKAN and 1.2 bigger from MLP in backward memory
 
 Epoch 15, Val Loss: 0.07934391943353768, Val Accuracy: 0.9772093949044586
 
-5. The most important thing is to test if [pykan](https://github.com/KindXiaoming/pykan) indeed has the continuous learning capabilities that it promises and if [fast-kan](https://github.com/ZiyaoLi/fast-kan) and [faster-kan](https://github.com/AthanasiosDelis/faster-kan) inherit these capabilities as well as the ability for pruning and symbolic regression.
+5. Train on mnist with a FasterKANvolver([ 64, 10] with 1,213,888 num trainable params for 15 epochs,  99.582% accuracy is achieved:
+ 
+100%|█| 938/938 [00:17<00:00, 52.80it/s, accuracy=1, loss=4.31e-5, lr=1.68e
+
+Epoch 00015: reducing learning rate of group 0 to 1.0078e-05.
+
+Epoch 15, Val Loss: 0.020724332156509737, Val Accuracy: 0.9958200636942676
+
+Current Learning Rate: 1.0077695999999996e-05
+ 
+6. Train on mnist with a FasterKANvolver([ 64, 32, 16, 10] with 1,230,624 num trainable params for 15 epochs, 99.5023% accuracy is achieved.
+
+EnhancedFeatureExtractor and Training Pipiline is by no means optimized, FasterKANvolver works only as a proof of concept that KAN and MLPs can coexist seamlessly with good results.
+
+I remind the [SOTA](https://paperswithcode.com/paper/a-branching-and-merging-convolutional-network) is 99.87% 
+
+7. The most important thing is to test if [pykan](https://github.com/KindXiaoming/pykan) indeed has the continuous learning capabilities that it promises and if [fast-kan](https://github.com/ZiyaoLi/fast-kan) and [faster-kan](https://github.com/AthanasiosDelis/faster-kan) inherit these capabilities as well as the ability for pruning and symbolic regression.
 
 ## Contact
 
 For any inquiries or support, contact: athanasiosdelis@mail.ntua.gr or adelis2@jhu.edu
 
 ## Citation
+
+Copyright 2024 Athanasios, Delis. Licensed under the Apache License, Version 2.0 (the "License");
 
 ```bibtex
 @misc{torchkan,
@@ -92,4 +110,13 @@ For any inquiries or support, contact: athanasiosdelis@mail.ntua.gr or adelis2@j
 
 ## Contributions
 
-Contributions are welcome. Please raise issues as necessary. All issues, as they come up, will be definitely solved to the best of my abilities, after commit "Fin.", scheduled end-June, 2024. Till then if you send a merge request, describe the problem, the fix and why it works.
+Contributions are welcome. Please raise issues as necessary. All issues, as they come up, will be definitely solved to the best of my abilities. Till then if you send a merge request, describe the problem, the fix and why it works.
+
+## References
+
+- [0] Ziming Liu et al., "KAN: Kolmogorov-Arnold Networks", 2024, arXiv. https://arxiv.org/abs/2404.19756
+- [1] https://github.com/KindXiaoming/pykan
+- [2] https://github.com/Blealtan/efficient-kan
+- [3] https://github.com/ZiyaoLi/fast-kan/tree/master
+- [4] https://github.com/1ssb/torchkan/tree/main
+- [5] https://pytorch.org/docs/stable/_modules/torch/nn/modules/activation.html#Tanh

@@ -197,25 +197,51 @@ class DepthwiseSeparableConv(nn.Module):
         x = self.pointwise(x)
         return x
 
+class SelfAttention(nn.Module):
+    def __init__(self, in_channels):
+        super(SelfAttention, self).__init__()
+        self.query_conv = nn.Conv2d(in_channels, in_channels // 8, kernel_size=1)
+        self.key_conv = nn.Conv2d(in_channels, in_channels // 8, kernel_size=1)
+        self.value_conv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
+        self.gamma = nn.Parameter(torch.zeros(1))
+
+    def forward(self, x):
+        batch_size, C, width, height = x.size()
+        proj_query = self.query_conv(x).view(batch_size, -1, width * height).permute(0, 2, 1)
+        proj_key = self.key_conv(x).view(batch_size, -1, width * height)
+        energy = torch.bmm(proj_query, proj_key)
+        attention = F.softmax(energy, dim=-1)
+        proj_value = self.value_conv(x).view(batch_size, -1, width * height)
+        out = torch.bmm(proj_value, attention.permute(0, 2, 1))
+        out = out.view(batch_size, C, width, height)
+        out = self.gamma * out + x
+        return out
+
 class EnhancedFeatureExtractor(nn.Module):
     def __init__(self):
         super(EnhancedFeatureExtractor, self).__init__()
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  # Increased number of filters
             nn.ReLU(),
+            nn.BatchNorm2d(32),  # Added Batch Normalization
             nn.MaxPool2d(2, 2),
-            BasicResBlock(16, 32),
-            SEBlock(32),  # Squeeze-and-Excitation block
+            BasicResBlock(32, 64),
+            SEBlock(64, reduction=16),  # Squeeze-and-Excitation block
             nn.MaxPool2d(2, 2),
-            DepthwiseSeparableConv(32, 64, kernel_size=3),
+            DepthwiseSeparableConv(64, 128, kernel_size=3),  # Increased number of filters
             nn.ReLU(),
+            BasicResBlock(128, 256),
+            SEBlock(256, reduction=16),
+            nn.MaxPool2d(2, 2),
+            SelfAttention(256),  # Added Self-Attention layer
         )
+        self.global_avg_pool = nn.AdaptiveAvgPool2d(1)  # Global Average Pooling
 
     def forward(self, x):
         x = self.initial_layers(x)
-        #print(f"Output shape after feature extractor: {x.size()}")  # Debugging output shape
+        x = self.global_avg_pool(x)
+        x = x.view(x.size(0), -1)  # Flatten the output for fully connected layers
         return x
-
 
 class FasterKANvolver(nn.Module):
     def __init__(self, layers_hidden, grid_min=-2., grid_max=2., num_grids=8, exponent=2, denominator=0.33, use_base_update=True, base_activation=F.silu, spline_weight_init_scale=0.667):
@@ -235,7 +261,7 @@ class FasterKANvolver(nn.Module):
         """
 
         # Calculate the flattened feature size after convolutional layers
-        flat_features = 1600  # 32 channels, image size reduced to 7x7
+        flat_features = 256 # XX channels, image size reduced to YxY
         
         # Update layers_hidden with the correct input size from conv layers
         layers_hidden = [flat_features] + layers_hidden

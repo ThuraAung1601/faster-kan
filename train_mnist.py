@@ -79,7 +79,7 @@ print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
 
 # Define model
-model_4 = FasterKANvolver([ num_hidden//4, num_hidden//4,  10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, denominator = 2).to(device)
+model_4 = FasterKANvolver([ num_hidden, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, denominator = 2).to(device)
 total_params, trainable_params = count_parameters(model_4)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
@@ -96,12 +96,12 @@ model = model_4
 # Define optimizer
 optimizer = optim.AdamW(model_4.parameters(), lr=1e-3, weight_decay=1e-5)
 # Define learning rate scheduler
-scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.8, patience=1, verbose=True)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.6, patience=0, verbose=True)
 
 # Define loss
 criterion = nn.CrossEntropyLoss()
 
-for epoch in range(1000):
+for epoch in range(15):
     # Train
     model.train()
     with tqdm(trainloader) as pbar:
