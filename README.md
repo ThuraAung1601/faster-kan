@@ -1,5 +1,5 @@
 # FasterKAN = FastKAN + RSWAF bases functions and benchmarking with other KANs
-
+  
 This repository contains a very fast implementation of Kolmogorov-Arnold Network (KAN). 
 
 It uses approximations of the B-spline using the Switch Activation Function, inspired from the work of [Bo Deng](https://digitalcommons.unl.edu/mathfacpub/68/),

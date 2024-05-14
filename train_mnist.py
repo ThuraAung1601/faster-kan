@@ -1,6 +1,3 @@
-# from efficient_kan import KAN
-from fastkan.fasterkan import FasterKAN
-
 # Train on MNIST
 import torch
 import torch.nn as nn
@@ -12,9 +9,14 @@ from tqdm import tqdm
 import time
 from typing import Callable, Dict, Tuple
 import numpy as np
-# Profiling and timing
+
 from torch.profiler import profile, record_function, ProfilerActivity
 from efficient_kan import KAN
+from torchkan import KANvolver
+
+from fastkan.fasterkan import FasterKAN, FasterKANvolver
+from torchsummary import summary
+
 
 class MLP(nn.Module):
     def __init__(self, layers: Tuple[int, int, int], device: str):
@@ -48,33 +50,58 @@ def count_parameters(model):
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     return total_params, trainable_params
 
-# Define model
-model = fasterKAN([28 * 28, 256,  10], grid_min = -1.2, grid_max = 1.8, num_grids = 16, exponent = 2, denominator = 0.15)
+num_hidden = 64
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model_1 = MLP(layers=[28 * 28, 256*5, 10], device=device)
+
+
+# Define model
 # Calculate total and trainable parameters
+
+model = FasterKAN([28 * 28, num_hidden,  10], grid_min = -1.2, grid_max = 1.8, num_grids = 16, exponent = 2, denominator = 0.15).to(device)
 total_params, trainable_params = count_parameters(model)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
+
+model_1 = MLP(layers=[28 * 28, num_hidden*5, 10], device=device)
 total_params, trainable_params = count_parameters(model_1)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
-model_2 = KAN([28 * 28, 256, 10], grid_size=5, spline_order=3)
+
+model_2 = KAN([28 * 28, num_hidden, 10], grid_size=5, spline_order=3).to(device)
 total_params, trainable_params = count_parameters(model_2)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
-model=model
-model.to(device)
+
+
+model_3 = KANvolver([28 * 28, num_hidden, 10], polynomial_order=2, base_activation=nn.ReLU).to(device)
+total_params, trainable_params = count_parameters(model_3)
+print(f"Total parameters: {total_params}")
+print(f"Trainable parameters: {trainable_params}")
+
+# Define model
+model_4 = FasterKANvolver([ num_hidden//4, num_hidden//4,  10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, denominator = 2).to(device)
+total_params, trainable_params = count_parameters(model_4)
+print(f"Total parameters: {total_params}")
+print(f"Trainable parameters: {trainable_params}")
+
+#print(summary(model,(1,28,28)))
+#print(summary(model_1,(1,28,28)))
+#print(summary(model_2,(1,28,28)))
+print(summary(model_3,(1,28,28)))
+print(summary(model_4,(1,28,28)))
+
+model = model_4
+#model.to(device)
 
 # Define optimizer
-optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-5)
+optimizer = optim.AdamW(model_4.parameters(), lr=1e-3, weight_decay=1e-5)
 # Define learning rate scheduler
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.85)
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.8, patience=1, verbose=True)
 
 # Define loss
 criterion = nn.CrossEntropyLoss()
 
-for epoch in range(15):
+for epoch in range(1000):
     # Train
     model.train()
     with tqdm(trainloader) as pbar:
@@ -122,8 +149,9 @@ for epoch in range(15):
     val_accuracy /= len(valloader)
 
     # Update learning rate
-    scheduler.step()
+    scheduler.step(val_loss)
 
     print(
         f"Epoch {epoch + 1}, Val Loss: {val_loss}, Val Accuracy: {val_accuracy}"
     )
+    print(f"Current Learning Rate: {optimizer.param_groups[0]['lr']}")

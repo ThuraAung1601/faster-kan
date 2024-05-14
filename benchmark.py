@@ -4,15 +4,15 @@ import time
 import numpy as np
 import torch
 from torch import nn
-from fastkan.fasterkan import FasterKAN  # Ensure the correct import path based on your project structure
+from fastkan.fasterkan import FasterKAN, FasterKANvolver  # Ensure the correct import path based on your project structure
 from efficient_kan import KAN
-from KALnet import KAL_Net
+from torchkan import KAL_Net
 from fastkan.fastkanorig import FastKAN as FastKANORG # Ensure the correct import path based on your project structure
-
+from torchkan import KANvolver
 
 def create_dataset(f, 
-                   n_var = 10, 
-                   ranges = [0,255],
+                   n_var = 28*28, 
+                   ranges = [0,1],
                    train_num=60000, 
                    test_num=10000,
                    normalize_input=False,
@@ -184,13 +184,13 @@ def benchmark(
 def save_results(t: Dict[str, Dict[str, float]], out_path: str):
     maxlen = np.max([len(k) for k in t.keys()])
     with open(out_path, 'w') as f:
-        print(f"| {' '*maxlen}  | {'forward':>11}  | {'backward':>11}  | {'forward':>11}  | {'backward':>11}  | {'num params':>11}  | {'num trainable params':>20} |", file=f)
-        print(f"| {' '*maxlen}  | {'forward':>11}  | {'backward':>11}  | {'forward':>11}  | {'backward':>11}  | {'num params':>11}  | {'num trainable params':>20} |")
+        print(f"| {' '*maxlen} | {'forward':>11}     | {'backward':>11}     | {'forward':>11}     | {'backward':>11}     | {'num params':>11}     | {'num trainable params':>20}     |", file=f)
+        print(f"| {' '*maxlen} | {'forward':>11}     | {'backward':>11}     | {'forward':>11}     | {'backward':>11}     | {'num params':>11}     | {'num trainable params':>20}     |")
         print(f"|{'-'*121}|", file=f)
         print(f"|{'-'*121}|")
         for key in t.keys():
-            print(f"| {key:<{maxlen}}  | {t[key]['forward']:8.2f} ms  | {t[key]['backward']:8.2f} ms  | {t[key]['forward-memory']:8.2f} GB  | {t[key]['backward-memory']:8.2f} GB  | {t[key]['params']:>11}  | {t[key]['train_params']:>20} |", file=f)
-            print(f"| {key:<{maxlen}}  | {t[key]['forward']:8.2f} ms  | {t[key]['backward']:8.2f} ms  | {t[key]['forward-memory']:8.2f} GB  | {t[key]['backward-memory']:8.2f} GB  | {t[key]['params']:>11}  | {t[key]['train_params']:>20} |")
+            print(f"| {key:<{maxlen}}     | {t[key]['forward']:8.2f} ms     | {t[key]['backward']:8.2f} ms     | {t[key]['forward-memory']:8.2f} GB     | {t[key]['backward-memory']:8.2f} GB     | {t[key]['params']:>11}     | {t[key]['train_params']:>20}     |", file=f)
+            print(f"| {key:<{maxlen}}     | {t[key]['forward']:8.2f} ms     | {t[key]['backward']:8.2f} ms     | {t[key]['forward-memory']:8.2f} GB     | {t[key]['backward-memory']:8.2f} GB     | {t[key]['params']:>11}     | {t[key]['train_params']:>20}     |")
         #print(f"FasterKAN can be after small modifications 4.99x faster than FastKAN and {} slower from MLP in forward speed")
         #print(f"FastKAN can be after small modifications 4.93x faster than efficient_kan and 3.02 slower from MLP in backward speed")
         #print(f"FastKAN can be after small modifications 2.57x smaller than efficient_kan and 2 bigger from MLP in forbward memory")
@@ -208,8 +208,8 @@ def _create_parser():
     parser.add_argument('--method', choices=['fastkan', 'mlp', 'all'], type=str)
     parser.add_argument('--batch-size', type=int, default=64)
     parser.add_argument('--inp-size', type=int, default=28*28, help='The dimension of the input variables.')
-    parser.add_argument('--hid-size', type=int, default=256, help='The dimension of the hidden layer.')
-    parser.add_argument('--reps', type=int, default=int(60000/64), help='Number of times to repeat execution and average.')
+    parser.add_argument('--hid-size', type=int, default=64, help='The dimension of the hidden layer.')
+    parser.add_argument('--reps', type=int, default=int(60000/60000), help='Number of times to repeat execution and average.')
     parser.add_argument('--just-cuda', action='store_true', help='Whether to only execute the cuda version.')
     return parser
 
@@ -222,7 +222,7 @@ def main():
     dataset = create_dataset(
         f, 
         n_var=args.inp_size,
-        ranges = [0,255],
+        ranges = [0,1],
         train_num=60000, 
         test_num=10000,
         normalize_input=False,
@@ -242,6 +242,15 @@ def main():
         model.to('cuda')
         res['fasterkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['fasterkan-gpu']['params'], res['fasterkan-gpu']['train_params'] = count_params(model)
+    if args.method == 'fasterkanvolver' or args.method == 'all':
+        model = FasterKANvolver(layers_hidden=[ args.hid_size, 10], grid_min = -1.2, grid_max = 1.2, num_grids = 8, exponent = 4, denominator = 0.1)
+        if not args.just_cuda:
+            model.to('cpu')
+            res['fasterkanvolver-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
+            res['fasterkanvolver-cpu']['params'], res['fasterkanvolver-cpu']['train_params'] = count_params(model)
+        model.to('cuda')
+        res['fasterkanvolver-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
+        res['fasterkanvolver-gpu']['params'], res['fasterkanvolver-gpu']['train_params'] = count_params(model)
     if args.method == 'fastkanorg' or args.method == 'all':
         model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 1.8, num_grids = 16)
         if not args.just_cuda:
@@ -277,7 +286,16 @@ def main():
         model.to('cuda')
         res['kalnet-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['kalnet-gpu']['params'], res['kalnet-gpu']['train_params'] = count_params(model)
-        
+    if args.method == 'kanvolve' or args.method == 'all':
+        model = KANvolver(layers_hidden=[args.hid_size, 10], polynomial_order=2, base_activation=nn.ReLU)
+        if not args.just_cuda:
+            model.to('cpu')
+            res['kanvolve-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
+            res['kanvolve-cpu']['params'], res['kanvolve-cpu']['train_params'] = count_params(model)
+        model.to('cuda')
+        res['kanvolve-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
+        res['kanvolve-gpu']['params'], res['kanvolve-gpu']['train_params'] = count_params(model)
+                
     save_results(res, args.output_path)
 
 if __name__=='__main__':

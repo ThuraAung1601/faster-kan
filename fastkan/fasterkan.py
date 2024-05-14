@@ -61,13 +61,13 @@ class FasterKANLayer(nn.Module):
         #    self.base_activation = base_activation
         #    self.base_linear = nn.Linear(input_dim, output_dim)
 
-    def forward(self, x, time_benchmark=False):
-        if not time_benchmark:
-            spline_basis = self.rbf(self.layernorm(x)).view(x.shape[0], -1)
-            #print("spline_basis:", spline_basis.shape)
-        else:
-            spline_basis = self.rbf(x).view(x.shape[0], -1)
-            #print("spline_basis:", spline_basis.shape)
+    def forward(self, x):
+        #print("Shape before LayerNorm:", x.shape)  # Debugging line to check the input shape
+        x = self.layernorm(x)
+        #print("Shape After LayerNorm:", x.shape)
+        spline_basis = self.rbf(x).view(x.shape[0], -1)
+        #print("spline_basis:", spline_basis.shape)
+
         #print("-------------------------")
         #ret = 0
         ret = self.spline_linear(spline_basis)
@@ -126,8 +126,156 @@ class FasterKAN(nn.Module):
                 spline_weight_init_scale=spline_weight_init_scale,
             ) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])
         ])
-
+        #print(f"FasterKAN layers_hidden[1:] shape: ", len(layers_hidden[1:]))   
+        #print(f"FasterKAN layers_hidden[:-1] shape: ", len(layers_hidden[:-1]))  
+        #print("FasterKAN zip shape: \n", *[(in_dim, out_dim) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])]) 
+   
+        #print(f"FasterKAN self.faster_kan_layers shape: \n", len(self.layers))
+        #print(f"FasterKAN self.faster_kan_layers: \n", self.layers)
+    
     def forward(self, x):
         for layer in self.layers:
+            #print("FasterKAN layer: \n", layer)
+            #print(f"FasterKAN x shape: {x.shape}")
             x = layer(x)
+        return x
+
+
+
+class BasicResBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, stride=1):
+        super(BasicResBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+
+        self.downsample = nn.Sequential()
+        if stride != 1 or in_channels != out_channels:
+            self.downsample = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(out_channels)
+            )
+
+    def forward(self, x):
+        identity = self.downsample(x)
+
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += identity
+        out = F.relu(out)
+
+        return out
+
+class SEBlock(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SEBlock, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
+class DepthwiseSeparableConv(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0):
+        super(DepthwiseSeparableConv, self).__init__()
+        self.depthwise = nn.Conv2d(in_channels, in_channels, kernel_size=kernel_size,
+                                   stride=stride, padding=padding, groups=in_channels)
+        self.pointwise = nn.Conv2d(in_channels, out_channels, kernel_size=1)
+
+    def forward(self, x):
+        x = self.depthwise(x)
+        x = self.pointwise(x)
+        return x
+
+class EnhancedFeatureExtractor(nn.Module):
+    def __init__(self):
+        super(EnhancedFeatureExtractor, self).__init__()
+        self.initial_layers = nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            BasicResBlock(16, 32),
+            SEBlock(32),  # Squeeze-and-Excitation block
+            nn.MaxPool2d(2, 2),
+            DepthwiseSeparableConv(32, 64, kernel_size=3),
+            nn.ReLU(),
+        )
+
+    def forward(self, x):
+        x = self.initial_layers(x)
+        #print(f"Output shape after feature extractor: {x.size()}")  # Debugging output shape
+        return x
+
+
+class FasterKANvolver(nn.Module):
+    def __init__(self, layers_hidden, grid_min=-2., grid_max=2., num_grids=8, exponent=2, denominator=0.33, use_base_update=True, base_activation=F.silu, spline_weight_init_scale=0.667):
+        super(FasterKANvolver, self).__init__()
+        
+        # Feature extractor with Convolutional layers
+        self.feature_extractor = EnhancedFeatureExtractor()
+        """
+        nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1),  # 1 input channel (grayscale), 16 output channels
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
+        """
+
+        # Calculate the flattened feature size after convolutional layers
+        flat_features = 1600  # 32 channels, image size reduced to 7x7
+        
+        # Update layers_hidden with the correct input size from conv layers
+        layers_hidden = [flat_features] + layers_hidden
+        #print(f"FasterKANvolver layers_hidden shape: \n", layers_hidden)
+        #print(f"FasterKANvolver layers_hidden[1:] shape: ", len(layers_hidden[1:]))   
+        #print(f"FasterKANvolver layers_hidden[:-1] shape: ", len(layers_hidden[:-1]))   
+        #print("FasterKANvolver zip shape: \n", *[(in_dim, out_dim) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])])         
+        
+        # Define the FasterKAN layers
+        self.faster_kan_layers = nn.ModuleList([
+            FasterKANLayer(
+                in_dim, out_dim,
+                grid_min=grid_min,
+                grid_max=grid_max,
+                num_grids=num_grids,
+                exponent=exponent,
+                denominator=denominator,
+                use_base_update=use_base_update,
+                base_activation=base_activation,
+                spline_weight_init_scale=spline_weight_init_scale,
+            ) for in_dim, out_dim in zip(layers_hidden[:-1], layers_hidden[1:])
+        ])   
+        #print(f"FasterKANvolver self.faster_kan_layers shape: \n", len(self.faster_kan_layers))
+        #print(f"FasterKANvolver self.faster_kan_layers: \n", self.faster_kan_layers)
+
+    def forward(self, x):
+        # Reshape input from [batch_size, 784] to [batch_size, 1, 28, 28] for MNIST
+        x = x.view(-1, 1, 28, 28)
+        # Apply convolutional layers
+        #print(f"FasterKAN x view shape: {x.shape}")
+        x = self.feature_extractor(x)
+        #print(f"FasterKAN x after feature_extractor shape: {x.shape}")
+        x = x.view(x.size(0), -1)  # Flatten the output from the conv layers
+        #rint(f"FasterKAN x shape: {x.shape}")
+        
+        # Pass through FasterKAN layers
+        for layer in self.faster_kan_layers:
+            #print("FasterKAN layer: \n", layer)
+            #print(f"FasterKAN x shape: {x.shape}")
+            x = layer(x)
+            #print(f"FasterKAN x shape: {x.shape}")
+        
         return x
