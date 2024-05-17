@@ -4,10 +4,10 @@ import time
 import numpy as np
 import torch
 from torch import nn
-from fastkan.fasterkan import FasterKAN, FasterKANvolver  # Ensure the correct import path based on your project structure
+from fasterkan.fasterkan import FasterKAN, FasterKANvolver
 from efficient_kan import KAN
 from torchkan import KAL_Net
-from fastkan.fastkanorig import FastKAN as FastKANORG # Ensure the correct import path based on your project structure
+from fastkan.fastkan import FastKAN as FastKANORG # Ensure the correct import path based on your project structure
 from torchkan import KANvolver
 
 def create_dataset(f, 
@@ -209,8 +209,9 @@ def _create_parser():
     parser.add_argument('--batch-size', type=int, default=64)
     parser.add_argument('--inp-size', type=int, default=28*28, help='The dimension of the input variables.')
     parser.add_argument('--hid-size', type=int, default=64, help='The dimension of the hidden layer.')
-    parser.add_argument('--reps', type=int, default=int(60000/60000), help='Number of times to repeat execution and average.')
+    parser.add_argument('--reps', type=int, default=int(60000/64), help='Number of times to repeat execution and average.')
     parser.add_argument('--just-cuda', action='store_true', help='Whether to only execute the cuda version.')
+    parser.add_argument('--bool-flag', action='store_true', help='Whether train grid and inv_denominator.')
     return parser
 
 
@@ -234,7 +235,7 @@ def main():
     
     res = {}
     if args.method == 'fasterkan' or args.method == 'all':
-        model = FasterKAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 1.8, num_grids = 16, exponent = 2, denominator = 0.15)
+        model = FasterKAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, inv_denominator = 0.5, train_grid = args.bool_flag, train_inv_denominator = args.bool_flag)
         if not args.just_cuda:
             model.to('cpu')
             res['fasterkan-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
@@ -242,17 +243,8 @@ def main():
         model.to('cuda')
         res['fasterkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['fasterkan-gpu']['params'], res['fasterkan-gpu']['train_params'] = count_params(model)
-    if args.method == 'fasterkanvolver' or args.method == 'all':
-        model = FasterKANvolver(layers_hidden=[ args.hid_size, 10], grid_min = -1.2, grid_max = 1.2, num_grids = 8, exponent = 4, denominator = 0.1)
-        if not args.just_cuda:
-            model.to('cpu')
-            res['fasterkanvolver-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
-            res['fasterkanvolver-cpu']['params'], res['fasterkanvolver-cpu']['train_params'] = count_params(model)
-        model.to('cuda')
-        res['fasterkanvolver-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
-        res['fasterkanvolver-gpu']['params'], res['fasterkanvolver-gpu']['train_params'] = count_params(model)
     if args.method == 'fastkanorg' or args.method == 'all':
-        model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 1.8, num_grids = 16)
+        model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8)
         if not args.just_cuda:
             model.to('cpu')
             res['fastkanorg-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
@@ -261,7 +253,7 @@ def main():
         res['fastkanorg-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['fastkanorg-gpu']['params'], res['fastkanorg-gpu']['train_params'] = count_params(model)
     if args.method == 'mlp' or args.method == 'all':
-        model = MLP(layers=[args.inp_size, args.hid_size*16 , 10], device='cpu')#int(np.rint(args.hid_size*7.5*10/10))
+        model = MLP(layers=[args.inp_size, args.hid_size*8 , 10], device='cpu')#int(np.rint(args.hid_size*7.5*10/10))
         if not args.just_cuda:
             res['mlp-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
             res['mlp-cpu']['params'], res['mlp-cpu']['train_params'] = count_params(model)
@@ -295,6 +287,15 @@ def main():
         model.to('cuda')
         res['kanvolve-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['kanvolve-gpu']['params'], res['kanvolve-gpu']['train_params'] = count_params(model)
+    if args.method == 'fasterkanvolver' or args.method == 'all':
+        model = FasterKANvolver(layers_hidden=[ args.hid_size, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, inv_denominator = 0.5, train_grid = args.bool_flag, train_inv_denominator = args.bool_flag)
+        if not args.just_cuda:
+            model.to('cpu')
+            res['fasterkanvolver-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
+            res['fasterkanvolver-cpu']['params'], res['fasterkanvolver-cpu']['train_params'] = count_params(model)
+        model.to('cuda')
+        res['fasterkanvolver-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
+        res['fasterkanvolver-gpu']['params'], res['fasterkanvolver-gpu']['train_params'] = count_params(model)
                 
     save_results(res, args.output_path)
 

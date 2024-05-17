@@ -1,6 +1,8 @@
 # FasterKAN = FastKAN + RSWAF bases functions and benchmarking with other KANs
   
-This repository contains a very fast implementation of Kolmogorov-Arnold Network (KAN). 
+This repository contains a very fast implementation of Kolmogorov-Arnold Network (KAN). As of 5/17/2024 is the fastest implementation according to my knowledge and benchmarks.
+
+In the latest edition user can choose if the grid is a learnable parameter. (Still experimental functionality as of 5/17/2024)
 
 It uses approximations of the B-spline using the Switch Activation Function, inspired from the work of [Bo Deng](https://digitalcommons.unl.edu/mathfacpub/68/),
 modified for having Reflectional symmetry. This kind of Activation Function can approximate 3rd order B-Splines used in the original [pykan](https://github.com/KindXiaoming/pykan).
@@ -29,6 +31,8 @@ $$b_i(u) = 1 - \left(\tanh\left(\frac{u - u_i}{h}\right)\right)^2$$
 
 
 The rationale of doing so is that these RSWAF functions can approximate the B-spline basis (up to a linear transformation), they are easy to calculate while having uniform grids.
+
+In the latest edition user can choose if the inverse of the denominator (1/h) is a learnable parameter. (Still experimental functionality as of 5/17/2024)
 
 Results of approximation of a 3-rd order spline for a [28*28,256,10] efficient-KAN are shown in the figure below (code in [notebook](draw_spline_basis.ipynb)). 
 
