@@ -46,10 +46,6 @@ class RSWAFFunction(Function):
         #print(f"tanh_diff shape: {tanh_diff.shape }")
         #print(f"grad_output shape: {grad_output.shape }")
         
-        # Compute the backward pass
-        #print(type(grad_output))
-        #print(grad_output.shape)
-        
         # Compute the backward pass for the input
         grad_input = -2 * tanh_diff * tanh_diff_deriviative * grad_output
         #print(f"Backward pass 1 - grad_input: {(grad_input.min().item(), grad_input.max().item())}")
