@@ -48,7 +48,7 @@ $$b_{i}(u)=\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)$$
     The benchmarking I tested inspired from [KAN-benchmarking](https://github.com/Jerry-Master/KAN-benchmarking),
     indicates that FastKAN may be even faster than originally though and FasterKAN is the fastest of all for the time being.
 
-    Experiments were executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H, and the network has dimensions [28*28,256,10],
+    Experiments were executed on a NVIDIA GeForce RTX3050 Ti 4G and an AMD Ryzen 7 6800H, and the network has dimensions [28x28,256,10],
     except from the MLP that has a hidden layer 256*5 to match the num params of FasterKAN.
 
     It seems that the various KAN implementations yield different num params for the same hidden layer and B-spline order (or its equivilent approximation parameters in other implementions) :

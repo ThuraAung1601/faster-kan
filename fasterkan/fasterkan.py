@@ -22,11 +22,11 @@ class RSWAFFunction(Function):
         tanh_diff_deriviative = -tanh_diff.mul(tanh_diff) + 1  # sech^2(x) = 1 - tanh^2(x)
         
         # Save tensors for backward pass
-        ctx.save_for_backward(input, tanh_diff, tanh_diff_derivative, diff, inv_denominator)
+        ctx.save_for_backward(input, tanh_diff, tanh_diff_deriviative, diff, inv_denominator)
         ctx.train_grid = train_grid
         ctx.train_inv_denominator = train_inv_denominator
         
-        return tanh_diff_derivative, tanh_diff, diff
+        return tanh_diff_deriviative
 
 ##### SOS NOT SURE HOW grad_inv_denominator, grad_grid ARE CALCULATED CORRECTLY YET
 ##### MUST CHECK https://github.com/pytorch/pytorch/issues/74802
@@ -38,7 +38,7 @@ class RSWAFFunction(Function):
     @staticmethod
     def backward(ctx, grad_output):
         # Retrieve saved tensors
-        input, tanh_diff, tanh_diff_derivative, diff, inv_denominator = ctx.saved_tensors
+        input, tanh_diff, tanh_diff_deriviative, diff, inv_denominator = ctx.saved_tensors
         grad_grid = None
         grad_inv_denominator = None
         
@@ -60,7 +60,7 @@ class RSWAFFunction(Function):
         if ctx.train_grid:
             #print('\n')
             #print(f"grad_grid shape: {grad_grid.shape }")
-            grad_grid = -(inv_denominator * grad_output * tanh_diff_deriviative).sum(dim=0) #-inv_denominator * grad_output.sum(dim=0).sum(dim=0)
+            grad_grid = -inv_denominator * grad_output.sum(dim=0).sum(dim=0)#-(inv_denominator * grad_output * tanh_diff_deriviative).sum(dim=0) #-inv_denominator * grad_output.sum(dim=0).sum(dim=0)
             #print(f"Backward pass - grad_grid: {(grad_grid[0].item(),grad_grid[-1].item())}")
             #print(f"grad_grid.shape: {grad_grid.shape }")
             #print(f"grad_grid: {(grad_grid[0],grad_grid[-1]) }")
@@ -69,7 +69,7 @@ class RSWAFFunction(Function):
 
         # Compute the backward pass for inv_denominator        
         if ctx.train_inv_denominator:
-            grad_inv_denominator = (grad_output * diff * tanh_diff_deriviative).sum() #(grad_output* diff).sum() 
+            grad_inv_denominator = (grad_output* diff).sum() #(grad_output * diff * tanh_diff_deriviative).sum() #(grad_output* diff).sum() 
             #print(f"Backward pass - grad_inv_denominator: {grad_inv_denominator.item()}")
             #print(f"diff shape: {diff.shape }")
 
@@ -301,7 +301,7 @@ class EnhancedFeatureExtractor(nn.Module):
     def __init__(self):
         super(EnhancedFeatureExtractor, self).__init__()
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  # Increased number of filters
+            nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),  # Increased number of filters
             nn.ReLU(),
             nn.BatchNorm2d(32),  # Added Batch Normalization
             nn.MaxPool2d(2, 2),
@@ -386,8 +386,10 @@ class FasterKANvolver(nn.Module):
         #print(f"FasterKANvolver self.faster_kan_layers: \n", self.faster_kan_layers)
 
     def forward(self, x):
-        # Reshape input from [batch_size, 784] to [batch_size, 1, 28, 28] for MNIST
-        x = x.view(-1, 1, 28, 28)
+        # Reshape input from [batch_size, 784] to [batch_size, 1, 28, 28] for MNIST [batch_size, 1, 32, 32] for C
+        #print(f"FasterKAN x view shape: {x.shape}")
+        x = x.view(-1, 3, 32,32)
+        #print(f"FasterKAN x view shape: {x.shape}")
         # Apply convolutional layers
         #print(f"FasterKAN x view shape: {x.shape}")
         x = self.feature_extractor(x)

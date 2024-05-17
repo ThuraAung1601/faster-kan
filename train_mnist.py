@@ -21,20 +21,6 @@ from torchsummary import summary
 import optuna
 from optuna.trial import TrialState
 
-
-class MLP(nn.Module):
-    def __init__(self, layers: Tuple[int, int, int], device: str):
-        super().__init__()
-        self.layer1 = nn.Linear(layers[0], layers[1], device=device)
-        self.layer2 = nn.Linear(layers[1], layers[2], device=device)
-
-    def forward(self, x: torch.Tensor):
-        x = self.layer1(x)
-        x = nn.functional.relu(x)
-        x = self.layer2(x)
-        x = nn.functional.sigmoid(x)
-        return x
-        
 # Define transformations
 transform_train = transforms.Compose([
     transforms.RandomRotation(10),
@@ -56,6 +42,20 @@ trainset = torchvision.datasets.MNIST(
 valset = torchvision.datasets.MNIST(
     root="./data", train=False, download=True, transform=transform_val
 )
+
+class MLP(nn.Module):
+    def __init__(self, layers: Tuple[int, int, int], device: str):
+        super().__init__()
+        self.layer1 = nn.Linear(layers[0], layers[1], device=device)
+        self.layer2 = nn.Linear(layers[1], layers[2], device=device)
+
+    def forward(self, x: torch.Tensor):
+        x = self.layer1(x)
+        x = nn.functional.relu(x)
+        x = self.layer2(x)
+        x = nn.functional.sigmoid(x)
+        return x
+        
 
 batch_size = 64
 num_hidden = 64
