@@ -1,6 +1,6 @@
 # FasterKAN = FastKAN + RSWAF bases functions and benchmarking with other KANs
   
-This repository contains a very fast implementation of Kolmogorov-Arnold Network (KAN). As of 5/17/2024 is the fastest implementation according to my knowledge and benchmarks.
+This repository contains a very fast implementation of Kolmogorov-Arnold Network (KAN). As of 5/17/2024 is the fastest implementation according to my knowledge and benchmarks. As of 5/25/2024 2nd/3rd fastest with ChebyKAN faster and rbf-kan faster in forward based on [#issue 6](https://github.com/AthanasiosDelis/faster-kan/issues/7). I will test with my newest version towards the end of the 1st week of June.
 
 In the latest edition user can choose if the grid is a learnable parameter. (Still experimental functionality as of 5/17/2024)
 
@@ -115,6 +115,8 @@ Copyright 2024 Athanasios, Delis. Licensed under the Apache License, Version 2.0
 ## Contributions
 
 Contributions are welcome. Please raise issues as necessary. All issues, as they come up, will be definitely solved to the best of my abilities. Till then if you send a merge request, describe the problem, the fix and why it works.
+
+Thanks to [Da1sypetals](https://github.com/Da1sypetals) for his cuda contribution.
 
 ## References
 

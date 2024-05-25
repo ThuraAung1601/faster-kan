@@ -82,10 +82,11 @@ class SelfAttention(nn.Module):
         return out
 
 class EnhancedFeatureExtractor(nn.Module):
-    def __init__(self):
+    def __init__(self,
+        colors = 3):
         super(EnhancedFeatureExtractor, self).__init__()
         self.initial_layers = nn.Sequential(
-            nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),  # Increased number of filters
+            nn.Conv2d(colors, 32, kernel_size=3, stride=1, padding=1),  # Increased number of filters
             nn.ReLU(),
             nn.BatchNorm2d(32),  # Added Batch Normalization
             nn.MaxPool2d(2, 2),

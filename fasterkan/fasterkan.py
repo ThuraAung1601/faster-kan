@@ -12,7 +12,7 @@ class FasterKAN(nn.Module):
         self,
         layers_hidden: List[int],
         grid_min: float = -1.2,
-        grid_max: float = 0.2,
+        grid_max: float = 1.2,
         num_grids: int = 8,
         exponent: int = 2,
         inv_denominator: float = 0.5,
@@ -66,11 +66,13 @@ class FasterKANvolver(nn.Module):
         #use_base_update: bool = True,
         base_activation = None,
         spline_weight_init_scale: float = 1.0,
+        view = [-1, 1, 28, 28],
     ) -> None:
         super(FasterKANvolver, self).__init__()
         
+        self.view = view
         # Feature extractor with Convolutional layers
-        self.feature_extractor = EnhancedFeatureExtractor()
+        self.feature_extractor = EnhancedFeatureExtractor(colors = view[1])
         """
         nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1),  # 1 input channel (grayscale), 16 output channels
@@ -81,7 +83,6 @@ class FasterKANvolver(nn.Module):
             nn.MaxPool2d(2, 2)
         )
         """
-
         # Calculate the flattened feature size after convolutional layers
         flat_features = 256 # XX channels, image size reduced to YxY
         
@@ -114,7 +115,8 @@ class FasterKANvolver(nn.Module):
     def forward(self, x):
         # Reshape input from [batch_size, 784] to [batch_size, 1, 28, 28] for MNIST [batch_size, 1, 32, 32] for C
         #print(f"FasterKAN x view shape: {x.shape}")
-        x = x.view(-1, 3, 32,32)
+        # Handle different input shapes based on the length of view
+        x = x.view(self.view[0], self.view[1], self.view[2], self.view[3])
         #print(f"FasterKAN x view shape: {x.shape}")
         # Apply convolutional layers
         #print(f"FasterKAN x view shape: {x.shape}")
