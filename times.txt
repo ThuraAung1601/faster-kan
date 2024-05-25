@@ -1,9 +1,8 @@
-|                     |     forward     |    backward     |     forward     |    backward     |  num params     | num trainable params     |
+|                |     forward     |    backward     |     forward     |    backward     |  num params     | num trainable params     |
 |-------------------------------------------------------------------------------------------------------------------------|
-| fasterkan-gpu           |     0.66 ms     |     1.32 ms     |     0.03 GB     |     0.03 GB     |      408242     |               408242     |
-| fastkanorg-gpu          |     0.91 ms     |     1.43 ms     |     0.02 GB     |     0.03 GB     |      459130     |               459114     |
-| mlp-gpu                 |     0.28 ms     |     0.66 ms     |     0.02 GB     |     0.02 GB     |      407050     |               407050     |
-| effkan-gpu              |     2.96 ms     |     2.51 ms     |     0.03 GB     |     0.02 GB     |      508160     |               508160     |
-| kalnet-gpu              |     1.83 ms     |     2.51 ms     |     0.08 GB     |     0.08 GB     |      254228     |               254228     |
-| kanvolve-gpu            |     1.39 ms     |     2.57 ms     |     0.10 GB     |     0.10 GB     |      409064     |               409064     |
-| fasterkanvolver-gpu     |     4.29 ms     |     7.50 ms     |     0.27 GB     |     0.26 GB     |     1213907     |              1213889     |
+| fasterkan-gpu      |     0.80 ms     |     1.75 ms     |     0.03 GB     |     0.03 GB     |      408242     |               408224     |
+| fastkanorg-gpu     |     0.79 ms     |     1.11 ms     |     0.02 GB     |     0.03 GB     |      459130     |               459114     |
+| mlp-gpu            |     0.22 ms     |     0.59 ms     |     0.02 GB     |     0.02 GB     |      407050     |               407050     |
+| effkan-gpu         |     1.74 ms     |     1.65 ms     |     0.03 GB     |     0.02 GB     |      508160     |               508160     |
+| kalnet-gpu         |     1.47 ms     |     2.18 ms     |     0.03 GB     |     0.03 GB     |      254228     |               254228     |
+| cufaster-gpu       |     0.80 ms     |     0.97 ms     |     0.04 GB     |     0.04 GB     |      408242     |               408224     |
