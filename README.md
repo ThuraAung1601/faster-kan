@@ -102,7 +102,7 @@ For any inquiries or support, contact: athanasiosdelis@mail.ntua.gr or adelis2@j
 Copyright 2024 Athanasios, Delis. Licensed under the Apache License, Version 2.0 (the "License");
 
 ```bibtex
-@misc{torchkan,
+@misc{Athanasios2024,
   author = {Athanasios Delis},
   title = {FasterKAN},
   year = {2024},
