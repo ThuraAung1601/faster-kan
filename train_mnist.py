@@ -99,7 +99,7 @@ print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
 
 # Define model
-model_4 = FasterKANvolver([ num_hidden, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, inv_denominator = 0.5, train_grid = bool_flag, train_inv_denominator = bool_flag).to(device)
+model_4 = FasterKANvolver([ num_hidden*2, num_hidden,num_hidden//2,num_hidden//4, 10], grid_min = -1.2, grid_max = 1.2, num_grids = 64, exponent = 2, inv_denominator = 0.5, train_grid = bool_flag, train_inv_denominator = bool_flag).to(device)
 total_params, trainable_params = count_parameters(model_4)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")

@@ -235,7 +235,7 @@ def main():
     
     res = {}
     if args.method == 'fasterkan' or args.method == 'all':
-        model = FasterKAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, inv_denominator = 0.5, train_grid = args.bool_flag, train_inv_denominator = args.bool_flag)
+        model = FasterKAN(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 1.2, num_grids = 64, exponent = 2, inv_denominator = 0.5, train_grid = args.bool_flag, train_inv_denominator = args.bool_flag)
         if not args.just_cuda:
             model.to('cpu')
             res['fasterkan-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)
@@ -244,7 +244,7 @@ def main():
         res['fasterkan-gpu'] = benchmark(dataset, 'cuda', args.batch_size, loss_fn, model, args.reps)
         res['fasterkan-gpu']['params'], res['fasterkan-gpu']['train_params'] = count_params(model)
     if args.method == 'fastkanorg' or args.method == 'all':
-        model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8)
+        model = FastKANORG(layers_hidden=[args.inp_size, args.hid_size, 10], grid_min = -1.2, grid_max = 1.2, num_grids = 64)
         if not args.just_cuda:
             model.to('cpu')
             res['fastkanorg-cpu'] = benchmark(dataset, 'cpu', args.batch_size, loss_fn, model, args.reps)

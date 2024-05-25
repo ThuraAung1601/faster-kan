@@ -23,10 +23,10 @@ from optuna.trial import TrialState
 
 # Define transformations
 transform_train = transforms.Compose([
-    transforms.RandomRotation(10),
-    transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+    #transforms.RandomRotation(10),
+    #transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
     transforms.ToTensor(),
-    transforms.RandomErasing(p=0.5, scale=(0.02, 0.33)),
+    #transforms.RandomErasing(p=0.5, scale=(0.02, 0.33)),
     transforms.Normalize((0.5,), (0.5,))
 ])
 
@@ -74,15 +74,15 @@ def count_parameters(model):
     return total_params, trainable_params
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+print(f"device: {device}")
 
 # Define model
 # Calculate total and trainable parameters
-bool_flag = False # True # False
+bool_flag = False # False # False
 
 input_dim = 3072
 
-model_0 = FasterKAN([input_dim,  num_hidden,num_hidden//2,num_hidden//4, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, inv_denominator = 0.5, train_grid = bool_flag, train_inv_denominator = bool_flag).to(device)
+model_0 = FasterKAN([input_dim, 1, num_hidden,num_hidden//2,num_hidden//4, 10], grid_min = -1.2, grid_max = 1.2, num_grids = 64, exponent = 2, inv_denominator = 0.5, train_grid = bool_flag, train_inv_denominator = bool_flag).to(device)
 total_params, trainable_params = count_parameters(model_0)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
@@ -104,7 +104,7 @@ print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
 
 # Define model
-model_4 = FasterKANvolver([ num_hidden,num_hidden//2,num_hidden//4, 10], grid_min = -1.2, grid_max = 0.2, num_grids = 8, exponent = 2, inv_denominator = 0.5, train_grid = bool_flag, train_inv_denominator = bool_flag).to(device)
+model_4 = FasterKANvolver([ num_hidden*2, num_hidden,num_hidden//2,num_hidden//4, 10], grid_min = -1.2, grid_max = 1.2, num_grids = 64, exponent = 2, inv_denominator = 0.5, train_grid = bool_flag, train_inv_denominator = bool_flag).to(device)
 total_params, trainable_params = count_parameters(model_4)
 print(f"Total parameters: {total_params}")
 print(f"Trainable parameters: {trainable_params}")
@@ -113,9 +113,9 @@ print(f"Trainable parameters: {trainable_params}")
 #print(summary(model_1,(1,28,28)))
 #print(summary(model_2,(1,28,28)))
 #print(summary(model_3,(1,input_dim)))
-#print(summary(model_4,(1,input_dim)))
+print(summary(model_4,(1,input_dim)))
 
-model_last = model = model_0
+model_last = model = model_4
 print(summary(model_0,(1,input_dim)))
 model_last.to(device)
 
