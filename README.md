@@ -36,7 +36,7 @@ $$b_{i}(u)=\exp\left(-\left(\frac{u-u_i}{h}\right)^2\right)$$
   
     Results of approximation of a 3-rd order spline for a [28*28,256,10] efficient-KAN are shown in the figure below (code in [notebook](draw_spline_basis.ipynb)). 
 
-    [RSWAF well approximates 3-order B-spline basis.](img/compare_basis.png)
+    ![RSWAF well approximates 3-order B-spline basis.](img/compare_basis.png)
 
 
 2. Used LayerNorm to scale inputs to the range of spline grids, so there is no need to adjust the grids.
